@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/context/AuthContext";
 import { getProductos } from "@/lib/api";
@@ -16,7 +16,7 @@ type Producto = {
   imagen: string;
 };
 
-export default function ProductosPage() {
+function ProductosContent() {
   const { token, usuario, cargandoAuth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -101,5 +101,13 @@ export default function ProductosPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProductosPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Cargando...</div>}>
+      <ProductosContent />
+    </Suspense>
   );
 }
