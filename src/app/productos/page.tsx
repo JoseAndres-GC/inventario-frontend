@@ -8,11 +8,19 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 
+type Producto = {
+  _id: string;
+  nombre: string;
+  descripcion: string;
+  cantidad: number;
+  imagen: string;
+};
+
 export default function ProductosPage() {
   const { token, usuario, cargandoAuth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [productos, setProductos] = useState([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
   const [mostrarToast, setMostrarToast] = useState(false);
 
   const cargarProductos = async () => {
@@ -29,7 +37,7 @@ export default function ProductosPage() {
   useEffect(() => {
     if (searchParams.get("exito") === "1") {
       setMostrarToast(true);
-      router.replace("/productos"); // limpia la query, no cierra el toast
+      router.replace("/productos");
     }
   }, [searchParams, router]);
 
@@ -72,7 +80,7 @@ export default function ProductosPage() {
       <Header />
       <main className="flex-1 p-6">
         <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {productos.map((producto: any) => (
+          {productos.map((producto) => (
             <ProductCard key={producto._id} producto={producto} />
           ))}
         </section>

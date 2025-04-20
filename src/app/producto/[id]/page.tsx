@@ -8,11 +8,19 @@ import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+type Producto = {
+  _id: string;
+  nombre: string;
+  descripcion: string;
+  cantidad: number;
+  imagen: string;
+};
+
 export default function ProductoDetallePage() {
   const params = useParams();
   const router = useRouter();
   const { token, usuario } = useAuth();
-  const [producto, setProducto] = useState<any>(null);
+  const [producto, setProducto] = useState<Producto | null>(null);
   const [cantidad, setCantidad] = useState(1);
   const [cargando, setCargando] = useState(true);
 
@@ -59,10 +67,7 @@ export default function ProductoDetallePage() {
         mensaje
       )}`;
 
-      // ✅ Abrir WhatsApp
       window.open(urlWhatsapp, "_blank");
-
-      // ✅ Redirigir a /productos luego del retiro
       router.push("/productos?exito=1");
     } catch (error) {
       console.error("❌ Error al registrar retiro:", error);

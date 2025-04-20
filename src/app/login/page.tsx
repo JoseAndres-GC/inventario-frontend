@@ -19,7 +19,7 @@ export default function LoginPage() {
       const { token, user } = await loginRequest(email, password);
       login(token, user);
       router.push(user.rol === "admin" ? "/admin/logistica" : "/productos");
-    } catch (err) {
+    } catch {
       setError("Correo o contraseña incorrectos");
     }
   };
