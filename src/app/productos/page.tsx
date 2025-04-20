@@ -5,7 +5,7 @@ import ProductosContent from "./ProductosContent";
 
 export default function ProductosPage() {
   return (
-    <Suspense fallback={<div>Cargando productos...</div>}>
+    <Suspense fallback={<div className="p-10 text-center">Cargando...</div>}>
       <ProductosContent />
     </Suspense>
   );
