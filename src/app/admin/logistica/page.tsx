@@ -8,10 +8,17 @@ import Footer from "@/components/Footer";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 
+type Pedido = {
+  producto?: { nombre: string };
+  cantidad: number;
+  trabajador?: { nombre: string };
+  createdAt?: string;
+};
+
 export default function LogisticaPage() {
   const { token, usuario, cargandoAuth } = useAuth();
   const router = useRouter();
-  const [pedidos, setPedidos] = useState([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -41,7 +48,7 @@ export default function LogisticaPage() {
   }
 
   const descargarExcel = () => {
-    const datos = pedidos.map((p: any) => ({
+    const datos = pedidos.map((p) => ({
       Producto: p.producto?.nombre || "Sin nombre",
       Cantidad: p.cantidad,
       Trabajador: p.trabajador?.nombre || "Sin trabajador",
@@ -100,7 +107,7 @@ export default function LogisticaPage() {
               </tr>
             </thead>
             <tbody>
-              {pedidos.map((p: any, i) => (
+              {pedidos.map((p, i) => (
                 <tr
                   key={i}
                   className="border-t border-gray-200 hover:bg-gray-50"

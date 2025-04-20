@@ -1,122 +1,136 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getPedidos } from "@/lib/api";
 import { useAuth } from "@/components/context/AuthContext";
-import { registrarPedido } from "@/lib/api";
-import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import * as XLSX from "xlsx";
+import { useRouter } from "next/navigation";
 
-type Producto = {
-  _id: string;
-  nombre: string;
-  descripcion: string;
+type Pedido = {
+  producto?: { nombre: string };
   cantidad: number;
-  imagen: string;
+  trabajador?: { nombre: string };
+  createdAt?: string;
 };
 
-export default function ProductoDetallePage() {
-  const params = useParams();
+export default function LogisticaPage() {
+  const { token, usuario, cargandoAuth } = useAuth();
   const router = useRouter();
-  const { token, usuario } = useAuth();
-  const [producto, setProducto] = useState<Producto | null>(null);
-  const [cantidad, setCantidad] = useState(1);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    if (cargandoAuth) return;
+
     if (!token || !usuario) {
       router.push("/login");
+      return;
     }
-  }, [token, usuario, router]);
 
-  const fetchProducto = async () => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/productos/${params.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const data = await res.json();
-      setProducto(data);
-    } catch (error) {
-      console.error("Error al cargar producto:", error);
-    } finally {
-      setCargando(false);
+    if (usuario.rol !== "admin") {
+      router.push("/productos");
+      return;
     }
-  };
 
-  useEffect(() => {
-    if (params.id && token) fetchProducto();
-  }, [params.id, token]);
+    getPedidos(token)
+      .then(setPedidos)
+      .finally(() => setCargando(false));
+  }, [token, usuario, cargandoAuth, router]);
 
-  const handleRetirar = async () => {
-    if (!producto || !token || !usuario) return;
-
-    try {
-      await registrarPedido(token, producto._id, cantidad, usuario._id);
-
-      const mensaje = `📦 *Nuevo retiro:*
-  Producto: ${producto.nombre}
-  Cantidad: ${cantidad}
-  Trabajador: ${usuario.nombre}
-  Fecha: ${new Date().toLocaleString("es-BO")}`;
-
-      const urlWhatsapp = `https://wa.me/59160819820?text=${encodeURIComponent(
-        mensaje
-      )}`;
-
-      window.open(urlWhatsapp, "_blank");
-      router.push("/productos?exito=1");
-    } catch (error) {
-      console.error("❌ Error al registrar retiro:", error);
-    }
-  };
-
-  if (cargando || !producto) {
-    return <p className="text-center py-20">Cargando producto...</p>;
+  if (cargandoAuth || cargando) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-600">
+        Cargando...
+      </div>
+    );
   }
 
+  const descargarExcel = () => {
+    const datos = pedidos.map((p) => ({
+      Producto: p.producto?.nombre || "Sin nombre",
+      Cantidad: p.cantidad,
+      Trabajador: p.trabajador?.nombre || "Sin trabajador",
+      Fecha: p.createdAt
+        ? new Date(p.createdAt).toLocaleString("es-BO")
+        : "Sin fecha",
+    }));
+
+    const hoja = XLSX.utils.json_to_sheet(datos);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, "Historial");
+
+    const fecha = new Date().toISOString().split("T")[0];
+    XLSX.writeFile(libro, `historial-retiros-${fecha}.xlsx`);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 text-black flex flex-col">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
-      <main className="max-w-5xl mx-auto p-6 flex-1">
-        <div className="flex flex-col md:flex-row gap-8">
-          <Image
-            src={producto.imagen}
-            alt={producto.nombre}
-            width={400}
-            height={300}
-            className="rounded w-full md:w-1/2 object-contain bg-white p-4"
-          />
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-2">{producto.nombre}</h1>
-            <p className="text-gray-700 mb-4">{producto.descripcion}</p>
-            <p className="mb-2 font-medium">
-              Stock disponible: {producto.cantidad}
-            </p>
 
-            <div className="flex flex-col gap-2">
-              <label className="font-medium">Cantidad:</label>
-              <input
-                type="number"
-                min={1}
-                value={cantidad}
-                onChange={(e) => setCantidad(parseInt(e.target.value))}
-                className="border p-2 rounded w-28 text-black"
+      <main className="flex-1 max-w-7xl mx-auto px-6 py-10 space-y-8">
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
+            📦 Historial de retiros
+          </h1>
+
+          <button
+            onClick={descargarExcel}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded-md transition duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M3 4a1 1 0 011-1h3a1 1 0 010 2H5v10h10V5h-2a1 1 0 110-2h3a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"
+                clipRule="evenodd"
               />
+              <path d="M9 8a1 1 0 012 0v3.586l1.293-1.293a1 1 0 011.414 1.414L10 15l-3.707-3.707a1 1 0 011.414-1.414L9 11.586V8z" />
+            </svg>
+            Excel
+          </button>
+        </div>
 
-              <button
-                onClick={handleRetirar}
-                className="mt-4 bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
-              >
-                Confirmar retiro y enviar WhatsApp
-              </button>
-            </div>
-          </div>
+        <div className="overflow-x-auto bg-white rounded-lg shadow-md">
+          <table className="w-full text-base">
+            <thead className="bg-gray-300 text-gray-800 text-sm uppercase">
+              <tr>
+                <th className="px-6 py-5 text-left">Producto</th>
+                <th className="px-6 py-5 text-left">Cantidad</th>
+                <th className="px-6 py-5 text-left">Trabajador</th>
+                <th className="px-6 py-5 text-left">Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pedidos.map((p, i) => (
+                <tr
+                  key={i}
+                  className="border-t border-gray-200 hover:bg-gray-50"
+                >
+                  <td className="px-6 py-5 text-gray-900 font-medium">
+                    {p.producto?.nombre}
+                  </td>
+                  <td className="px-6 py-5 text-gray-900">{p.cantidad}</td>
+                  <td className="px-6 py-5 text-gray-900">
+                    {p.trabajador?.nombre}
+                  </td>
+                  <td className="px-6 py-5 text-gray-900">
+                    {p.createdAt
+                      ? new Date(p.createdAt).toLocaleString("es-BO")
+                      : "Sin fecha"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </main>
+
       <Footer />
     </div>
   );
