@@ -9,25 +9,25 @@ import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 
 export default function ProductosPage() {
-  const { token, usuario } = useAuth();
+  const { token, usuario, loading } = useAuth();
   const router = useRouter();
   const [productos, setProductos] = useState([]);
 
   useEffect(() => {
-    // Si no hay sesión, redirigir al login
+    if (loading) return;
+
     if (!token || !usuario) {
       router.push("/login");
       return;
     }
 
-    // Si no es trabajador, redirigir a la ruta del admin
     if (usuario.rol !== "trabajador") {
       router.push("/admin/logistica");
       return;
     }
 
     getProductos(token).then(setProductos);
-  }, [token, usuario, router]);
+  }, [token, usuario, router, loading]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">

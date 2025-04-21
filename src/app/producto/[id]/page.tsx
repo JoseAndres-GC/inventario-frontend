@@ -11,18 +11,15 @@ import Footer from "@/components/Footer";
 export default function ProductoDetallePage() {
   const params = useParams();
   const router = useRouter();
-  const { token, usuario } = useAuth();
+  const { token, usuario, loading } = useAuth();
   const [producto, setProducto] = useState<any>(null);
   const [cantidad, setCantidad] = useState(1);
 
-  // ✅ Redirección si no hay sesión
   useEffect(() => {
-    if (!token || !usuario) {
-      router.push("/login");
-    }
-  }, [token, usuario, router]);
+    if (loading) return;
+    if (!token || !usuario) router.push("/login");
+  }, [token, usuario, router, loading]);
 
-  // ✅ Traer producto
   useEffect(() => {
     const fetchProducto = async () => {
       try {
@@ -42,66 +39,63 @@ export default function ProductoDetallePage() {
     if (params.id && token) fetchProducto();
   }, [params.id, token]);
 
-  // ✅ Manejar retiro y enviar WhatsApp
   const handleRetirar = async () => {
     if (!producto || !token || !usuario) return;
 
     try {
       await registrarPedido(token, producto._id, cantidad, usuario._id);
-
-      const mensaje = `📦 *Nuevo retiro:*
-Producto: ${producto.nombre}
-Cantidad: ${cantidad}
-trabajador: ${usuario.nombre}
-Fecha: ${new Date().toLocaleString("es-BO")}`;
-
-      const urlWhatsapp = `https://wa.me/59160819820?text=${encodeURIComponent(
-        mensaje
-      )}`;
-      window.open(urlWhatsapp, "_blank");
+      const mensaje = `Hola, retiré ${cantidad} unidad(es) del producto: ${producto.nombre}`;
+      const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, "_blank");
+      router.push("/productos");
     } catch (error) {
-      console.error("❌ Error al registrar retiro:", error);
+      console.error("Error al registrar el pedido:", error);
     }
   };
 
   if (!producto) {
-    return <p className="text-center py-20">Cargando producto...</p>;
+    return <div className="p-6">Cargando producto...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 text-black flex flex-col">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
-      <main className="max-w-5xl mx-auto p-6 flex-1">
-        <div className="flex flex-col md:flex-row gap-8">
-          <Image
-            src={producto.imagen}
-            alt={producto.nombre}
-            width={400}
-            height={300}
-            className="rounded w-full md:w-1/2 object-contain bg-white p-4"
-          />
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-2">{producto.nombre}</h1>
-            <p className="text-gray-700 mb-4">{producto.descripcion}</p>
-            <p className="mb-2 font-medium">
-              Stock disponible: {producto.cantidad}
-            </p>
+      <main className="flex-1 flex justify-center p-6">
+        <div className="w-full max-w-5xl bg-white p-6 rounded-2xl shadow-xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="flex justify-center items-center">
+            <Image
+              src={producto.imagen}
+              alt={producto.nombre}
+              width={500}
+              height={500}
+              className="object-contain rounded-lg shadow max-h-96"
+              priority
+            />
+          </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="font-medium">Cantidad:</label>
+          <div className="flex flex-col justify-center space-y-6">
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-800">
+                {producto.nombre}
+              </h1>
+              <p className="text-gray-600 mt-2 text-lg">
+                {producto.descripcion}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
               <input
                 type="number"
-                min={1}
                 value={cantidad}
-                onChange={(e) => setCantidad(parseInt(e.target.value))}
-                className="border p-2 rounded w-28 text-black"
+                onChange={(e) => setCantidad(Number(e.target.value))}
+                min={1}
+                className="w-24 border border-gray-300 rounded px-3 py-2 text-center shadow-sm text-gray-800 bg-white"
               />
-
               <button
                 onClick={handleRetirar}
-                className="mt-4 bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-semibold shadow transition"
               >
-                Confirmar retiro y enviar WhatsApp
+                Retirar y enviar por WhatsApp
               </button>
             </div>
           </div>

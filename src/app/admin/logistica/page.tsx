@@ -9,12 +9,14 @@ import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 
 export default function LogisticaPage() {
-  const { token, usuario } = useAuth();
+  const { token, usuario, loading } = useAuth();
   const router = useRouter();
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    if (loading) return;
+
     if (!token || !usuario) {
       router.push("/login");
       return;
@@ -28,7 +30,7 @@ export default function LogisticaPage() {
     getPedidos(token)
       .then(setPedidos)
       .finally(() => setCargando(false));
-  }, [token, usuario, router]);
+  }, [token, usuario, router, loading]);
 
   if (cargando) {
     return (
