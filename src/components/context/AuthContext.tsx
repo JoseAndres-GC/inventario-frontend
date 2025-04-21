@@ -20,7 +20,6 @@ type Usuario = {
 type AuthContextType = {
   usuario: Usuario | null;
   token: string | null;
-  cargandoAuth: boolean;
   login: (token: string, user: Usuario) => void;
   logout: () => void;
 };
@@ -30,7 +29,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [cargandoAuth, setCargandoAuth] = useState(true);
 
   useEffect(() => {
     const savedToken = getToken();
@@ -39,7 +37,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setToken(savedToken);
       setUsuario(savedUser);
     }
-    setCargandoAuth(false);
   }, []);
 
   const login = (newToken: string, user: Usuario) => {
@@ -57,9 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ usuario, token, cargandoAuth, login, logout }}
-    >
+    <AuthContext.Provider value={{ usuario, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

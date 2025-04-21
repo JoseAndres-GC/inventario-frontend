@@ -9,14 +9,12 @@ import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 
 export default function LogisticaPage() {
-  const { token, usuario, cargandoAuth } = useAuth();
+  const { token, usuario } = useAuth();
   const router = useRouter();
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    if (cargandoAuth) return;
-
     if (!token || !usuario) {
       router.push("/login");
       return;
@@ -30,9 +28,9 @@ export default function LogisticaPage() {
     getPedidos(token)
       .then(setPedidos)
       .finally(() => setCargando(false));
-  }, [token, usuario, cargandoAuth, router]);
+  }, [token, usuario, router]);
 
-  if (cargandoAuth || cargando) {
+  if (cargando) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-600">
         Cargando...
@@ -62,19 +60,19 @@ export default function LogisticaPage() {
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
 
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-10 space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-800 flex items-center gap-3">
             📦 Historial de retiros
           </h1>
 
           <button
             onClick={descargarExcel}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded-md transition duration-200"
+            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md transition duration-200 w-full sm:w-auto"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -85,18 +83,18 @@ export default function LogisticaPage() {
               />
               <path d="M9 8a1 1 0 012 0v3.586l1.293-1.293a1 1 0 011.414 1.414L10 15l-3.707-3.707a1 1 0 011.414-1.414L9 11.586V8z" />
             </svg>
-            Excel
+            Descargar Excel
           </button>
         </div>
 
         <div className="overflow-x-auto bg-white rounded-lg shadow-md">
-          <table className="w-full text-base">
-            <thead className="bg-gray-300 text-gray-800 text-sm uppercase">
+          <table className="min-w-full text-sm sm:text-base">
+            <thead className="bg-gray-300 text-gray-800 uppercase">
               <tr>
-                <th className="px-6 py-5 text-left">Producto</th>
-                <th className="px-6 py-5 text-left">Cantidad</th>
-                <th className="px-6 py-5 text-left">Trabajador</th>
-                <th className="px-6 py-5 text-left">Fecha</th>
+                <th className="px-4 sm:px-6 py-4 text-left">Producto</th>
+                <th className="px-4 sm:px-6 py-4 text-left">Cantidad</th>
+                <th className="px-4 sm:px-6 py-4 text-left">Trabajador</th>
+                <th className="px-4 sm:px-6 py-4 text-left">Fecha</th>
               </tr>
             </thead>
             <tbody>
@@ -105,14 +103,16 @@ export default function LogisticaPage() {
                   key={i}
                   className="border-t border-gray-200 hover:bg-gray-50"
                 >
-                  <td className="px-6 py-5 text-gray-900 font-medium">
+                  <td className="px-4 sm:px-6 py-4 text-gray-900 font-medium">
                     {p.producto?.nombre}
                   </td>
-                  <td className="px-6 py-5 text-gray-900">{p.cantidad}</td>
-                  <td className="px-6 py-5 text-gray-900">
+                  <td className="px-4 sm:px-6 py-4 text-gray-900">
+                    {p.cantidad}
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 text-gray-900">
                     {p.trabajador?.nombre}
                   </td>
-                  <td className="px-6 py-5 text-gray-900">
+                  <td className="px-4 sm:px-6 py-4 text-gray-900">
                     {p.createdAt
                       ? new Date(p.createdAt).toLocaleString("es-BO")
                       : "Sin fecha"}

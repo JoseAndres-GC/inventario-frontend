@@ -8,49 +8,41 @@ import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-type Producto = {
-  _id: string;
-  nombre: string;
-  descripcion: string;
-  cantidad: number;
-  imagen: string;
-};
-
 export default function ProductoDetallePage() {
   const params = useParams();
   const router = useRouter();
   const { token, usuario } = useAuth();
-  const [producto, setProducto] = useState<Producto | null>(null);
+  const [producto, setProducto] = useState<any>(null);
   const [cantidad, setCantidad] = useState(1);
-  const [cargando, setCargando] = useState(true);
 
+  // ✅ Redirección si no hay sesión
   useEffect(() => {
     if (!token || !usuario) {
       router.push("/login");
     }
   }, [token, usuario, router]);
 
-  const fetchProducto = async () => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/productos/${params.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const data = await res.json();
-      setProducto(data);
-    } catch (error) {
-      console.error("Error al cargar producto:", error);
-    } finally {
-      setCargando(false);
-    }
-  };
-
+  // ✅ Traer producto
   useEffect(() => {
+    const fetchProducto = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/productos/${params.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const data = await res.json();
+        setProducto(data);
+      } catch (error) {
+        console.error("Error al cargar producto:", error);
+      }
+    };
+
     if (params.id && token) fetchProducto();
   }, [params.id, token]);
 
+  // ✅ Manejar retiro y enviar WhatsApp
   const handleRetirar = async () => {
     if (!producto || !token || !usuario) return;
 
@@ -58,23 +50,21 @@ export default function ProductoDetallePage() {
       await registrarPedido(token, producto._id, cantidad, usuario._id);
 
       const mensaje = `📦 *Nuevo retiro:*
-  Producto: ${producto.nombre}
-  Cantidad: ${cantidad}
-  Trabajador: ${usuario.nombre}
-  Fecha: ${new Date().toLocaleString("es-BO")}`;
+Producto: ${producto.nombre}
+Cantidad: ${cantidad}
+trabajador: ${usuario.nombre}
+Fecha: ${new Date().toLocaleString("es-BO")}`;
 
       const urlWhatsapp = `https://wa.me/59160819820?text=${encodeURIComponent(
         mensaje
       )}`;
-
       window.open(urlWhatsapp, "_blank");
-      router.push("/productos?exito=1");
     } catch (error) {
       console.error("❌ Error al registrar retiro:", error);
     }
   };
 
-  if (cargando || !producto) {
+  if (!producto) {
     return <p className="text-center py-20">Cargando producto...</p>;
   }
 
