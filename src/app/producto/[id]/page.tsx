@@ -13,7 +13,7 @@ export default function ProductoDetallePage() {
   const router = useRouter();
   const { token, usuario, loading } = useAuth();
   const [producto, setProducto] = useState<any>(null);
-  const [cantidad, setCantidad] = useState(1);
+  const [cantidad, setCantidad] = useState<string>("1");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -41,11 +41,12 @@ export default function ProductoDetallePage() {
   }, [params.id, token]);
 
   const handleRetirar = async () => {
-    if (!producto || !token || !usuario || cantidad <= 0 || error) return;
+    const parsedCantidad = parseFloat(cantidad);
+    if (!producto || !token || !usuario || parsedCantidad <= 0 || error) return;
 
     try {
-      await registrarPedido(token, producto._id, cantidad, usuario._id);
-      const numero = "59160819820"; // reemplaza con el número real
+      await registrarPedido(token, producto._id, parsedCantidad, usuario._id);
+      const numero = "59160819820";
       const fechaHora = new Date().toLocaleString("es-BO", {
         day: "numeric",
         month: "numeric",
@@ -59,7 +60,7 @@ export default function ProductoDetallePage() {
       const mensaje =
         `🧾 Nuevo retiro:\n` +
         `Producto: ${producto.nombre}\n` +
-        `Cantidad: ${cantidad} ${producto.medida}\n` +
+        `Cantidad: ${parsedCantidad} ${producto.medida}\n` +
         `Trabajador: ${usuario.nombre || "Trabajador"}\n` +
         `Fecha: ${fechaHora}`;
 
@@ -133,29 +134,46 @@ export default function ProductoDetallePage() {
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <input
-                type="number"
-                step={producto.medida === "Unidad" ? 1 : "0.01"}
+                type="text"
                 value={cantidad}
+                placeholder={producto.medida === "Unidad" ? "1" : "1.00"}
                 onChange={(e) => {
-                  const valor = Number(e.target.value);
+                  const raw = e.target.value;
+
+                  if (raw.includes(",")) {
+                    setError(
+                      "No se aceptan comas. Usa punto (.) para decimales."
+                    );
+                    setCantidad(raw);
+                    return;
+                  }
+
+                  const valor = parseFloat(raw);
+                  if (isNaN(valor) || valor <= 0) {
+                    setError("Ingresa un número válido mayor a 0.");
+                    setCantidad(raw);
+                    return;
+                  }
+
                   if (
                     producto.medida === "Unidad" &&
                     !Number.isInteger(valor)
                   ) {
                     setError("Este producto solo permite cantidades enteras.");
-                  } else {
-                    setError("");
+                    setCantidad(raw);
+                    return;
                   }
-                  setCantidad(valor);
+
+                  setError("");
+                  setCantidad(raw);
                 }}
-                min={producto.medida === "Unidad" ? 1 : 0.01}
                 className="w-24 border border-gray-300 rounded px-3 py-2 text-center shadow-sm text-gray-800 bg-white"
               />
               <button
                 onClick={handleRetirar}
-                disabled={!!error || cantidad <= 0}
+                disabled={!!error || parseFloat(cantidad) <= 0}
                 className={`${
-                  error || cantidad <= 0
+                  error || parseFloat(cantidad) <= 0
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-green-600 hover:bg-green-700"
                 } text-white px-6 py-2 rounded-md text-sm font-semibold shadow transition`}
