@@ -44,6 +44,7 @@ export default function LogisticaPage() {
     const datos = pedidos.map((p: any) => ({
       Producto: p.producto?.nombre || "Sin nombre",
       Cantidad: p.cantidad,
+      Medida: p.producto?.medida || "—",
       Trabajador: p.trabajador?.nombre || "Sin trabajador",
       Fecha: p.createdAt
         ? new Date(p.createdAt).toLocaleString("es-BO")
@@ -54,7 +55,10 @@ export default function LogisticaPage() {
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, "Historial");
 
-    const fecha = new Date().toISOString().split("T")[0];
+    const hoy = new Date();
+    const fecha = `${hoy.getFullYear()}-${(hoy.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${hoy.getDate().toString().padStart(2, "0")}`;
     XLSX.writeFile(libro, `historial-retiros-${fecha}.xlsx`);
   };
 
@@ -95,6 +99,7 @@ export default function LogisticaPage() {
               <tr>
                 <th className="px-4 sm:px-6 py-4 text-left">Producto</th>
                 <th className="px-4 sm:px-6 py-4 text-left">Cantidad</th>
+                <th className="px-4 sm:px-6 py-4 text-left">Medida</th>
                 <th className="px-4 sm:px-6 py-4 text-left">Trabajador</th>
                 <th className="px-4 sm:px-6 py-4 text-left">Fecha</th>
               </tr>
@@ -110,6 +115,9 @@ export default function LogisticaPage() {
                   </td>
                   <td className="px-4 sm:px-6 py-4 text-gray-900">
                     {p.cantidad}
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 text-gray-900">
+                    {p.producto?.medida || "—"}
                   </td>
                   <td className="px-4 sm:px-6 py-4 text-gray-900">
                     {p.trabajador?.nombre}

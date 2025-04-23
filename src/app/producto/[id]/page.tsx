@@ -14,6 +14,7 @@ export default function ProductoDetallePage() {
   const { token, usuario, loading } = useAuth();
   const [producto, setProducto] = useState<any>(null);
   const [cantidad, setCantidad] = useState(1);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (loading) return;
@@ -40,12 +41,29 @@ export default function ProductoDetallePage() {
   }, [params.id, token]);
 
   const handleRetirar = async () => {
-    if (!producto || !token || !usuario) return;
+    if (!producto || !token || !usuario || cantidad <= 0 || error) return;
 
     try {
       await registrarPedido(token, producto._id, cantidad, usuario._id);
-      const mensaje = `Hola, retiré ${cantidad} unidad(es) del producto: ${producto.nombre}`;
-      const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+      const numero = "59160819820"; // reemplaza con el número real
+      const fechaHora = new Date().toLocaleString("es-BO", {
+        day: "numeric",
+        month: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        hour12: true,
+      });
+
+      const mensaje =
+        `🧾 Nuevo retiro:\n` +
+        `Producto: ${producto.nombre}\n` +
+        `Cantidad: ${cantidad} ${producto.medida}\n` +
+        `Trabajador: ${usuario.nombre || "Trabajador"}\n` +
+        `Fecha: ${fechaHora}`;
+
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
       window.open(url, "_blank");
       router.push("/productos");
     } catch (error) {
@@ -81,23 +99,74 @@ export default function ProductoDetallePage() {
               <p className="text-gray-600 mt-2 text-lg">
                 {producto.descripcion}
               </p>
+              <div className="mt-4 space-y-1 text-sm text-gray-700">
+                <p>
+                  <strong>Precio:</strong> Bs{" "}
+                  {producto.precio?.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                  })}
+                </p>
+                <p>
+                  <strong>Medida:</strong> {producto.medida}
+                </p>
+                <p>
+                  <strong>Estado:</strong>{" "}
+                  <span
+                    className={
+                      producto.estado === "Activo"
+                        ? "text-green-600 font-semibold"
+                        : "text-red-500 font-semibold"
+                    }
+                  >
+                    {producto.estado}
+                  </span>
+                </p>
+                <p>
+                  <strong>Stock disponible:</strong>{" "}
+                  {producto.cantidad.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  {producto.medida}
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <input
                 type="number"
+                step={producto.medida === "Unidad" ? 1 : "0.01"}
                 value={cantidad}
-                onChange={(e) => setCantidad(Number(e.target.value))}
-                min={1}
+                onChange={(e) => {
+                  const valor = Number(e.target.value);
+                  if (
+                    producto.medida === "Unidad" &&
+                    !Number.isInteger(valor)
+                  ) {
+                    setError("Este producto solo permite cantidades enteras.");
+                  } else {
+                    setError("");
+                  }
+                  setCantidad(valor);
+                }}
+                min={producto.medida === "Unidad" ? 1 : 0.01}
                 className="w-24 border border-gray-300 rounded px-3 py-2 text-center shadow-sm text-gray-800 bg-white"
               />
               <button
                 onClick={handleRetirar}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-semibold shadow transition"
+                disabled={!!error || cantidad <= 0}
+                className={`${
+                  error || cantidad <= 0
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700"
+                } text-white px-6 py-2 rounded-md text-sm font-semibold shadow transition`}
               >
                 Retirar y enviar por WhatsApp
               </button>
             </div>
+
+            {error && (
+              <p className="text-red-500 text-sm font-medium">{error}</p>
+            )}
           </div>
         </div>
       </main>
