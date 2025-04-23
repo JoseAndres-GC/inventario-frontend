@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPedidos } from "@/lib/api";
 import { useAuth } from "@/components/context/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
+import { fetchConAuth } from "@/lib/fetchConAuth";
 
 export default function LogisticaPage() {
   const { token, usuario, loading } = useAuth();
@@ -27,9 +27,15 @@ export default function LogisticaPage() {
       return;
     }
 
-    getPedidos(token)
-      .then(setPedidos)
-      .finally(() => setCargando(false));
+    const cargarPedidos = async () => {
+      const res = await fetchConAuth("/api/pedidos");
+      if (!res) return;
+      const data = await res.json();
+      setPedidos(data);
+      setCargando(false);
+    };
+
+    cargarPedidos();
   }, [token, usuario, router, loading]);
 
   if (cargando) {

@@ -35,10 +35,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const savedToken = getToken();
     const savedUser = getUser();
+
     if (savedToken && savedUser) {
       setToken(savedToken);
       setUsuario(savedUser);
     }
+
     setLoading(false);
   }, []);
 
@@ -47,6 +49,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     saveUser(user);
     setToken(newToken);
     setUsuario(user);
+
+    // ⏰ Programar logout automático tras 1 hora
+    setTimeout(() => {
+      removeToken();
+      removeUser();
+      window.location.href = "/login";
+    }, 60 * 60 * 1000); // 1 hora = 3600000 ms
   };
 
   const logout = () => {
