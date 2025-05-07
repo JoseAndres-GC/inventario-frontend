@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/context/AuthContext";
-import Header from "@/components/Header";
+import Header from "@/components/HeaderAdmin";
 import Footer from "@/components/Footer";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
