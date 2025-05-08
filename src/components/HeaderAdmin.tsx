@@ -23,6 +23,9 @@ export default function HeaderAdmin() {
           <Link href="/admin/logistica" className="hover:underline">
             Logística
           </Link>
+          <Link href="/admin/crear" className="hover:underline">
+            Crear producto
+          </Link>
           <button
             onClick={handleLogout}
             className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-medium"
