@@ -40,8 +40,8 @@ export default function CrearProducto() {
       },
       body: JSON.stringify({
         ...form,
-        cantidad: parseFloat(form.cantidad),
-        precio: parseFloat(form.precio),
+        cantidad: parseFloat(form.cantidad.replace(",", ".")),
+        precio: parseFloat(form.precio.replace(",", ".")),
       }),
     });
 
@@ -97,7 +97,9 @@ export default function CrearProducto() {
                 Cantidad
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
+                pattern="^[0-9]+([.,][0-9]+)?$"
                 name="cantidad"
                 onChange={handleChange}
                 required
@@ -109,7 +111,9 @@ export default function CrearProducto() {
                 Precio
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
+                pattern="^[0-9]+([.,][0-9]+)?$"
                 name="precio"
                 onChange={handleChange}
                 required
@@ -130,9 +134,6 @@ export default function CrearProducto() {
               required
             >
               <option value="">Selecciona una imagen</option>
-              <option value="/images/1.jpg">1.jpg</option>
-              <option value="/images/2.jpg">2.jpg</option>
-              <option value="/images/3.jpg">3.jpg</option>
               <option value="/images/acido-citrico.png">
                 acido-citrico.png
               </option>

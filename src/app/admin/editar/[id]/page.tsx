@@ -196,12 +196,24 @@ export default function EditarProducto() {
             </select>
           </div>
 
-          <button
-            type="submit"
-            className="bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition"
-          >
-            Guardar Cambios
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                toast("Edición cancelada");
+                router.push("/admin/productos");
+              }}
+              className="w-full bg-gray-300 text-gray-800 py-2 px-4 rounded font-semibold hover:bg-gray-400 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded font-semibold hover:bg-blue-700 transition"
+            >
+              Guardar Cambios
+            </button>
+          </div>
         </form>
       </main>
       <Footer />
