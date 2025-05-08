@@ -19,7 +19,7 @@ export default function EditarProductoPage() {
     cantidad: "",
     medida: "",
     estado: "",
-    imagen: "", // solo para mostrar, ya no editable
+    imagen: "",
   });
 
   const [error, setError] = useState("");
@@ -64,7 +64,7 @@ export default function EditarProductoPage() {
           cantidad: data.cantidad?.toString() || "",
           medida: data.medida || "",
           estado: data.estado || "",
-          imagen: data.imagen || "", // se mantiene en estado pero no editable
+          imagen: data.imagen || "",
         });
       })
       .catch((err) => setError(err.message));
