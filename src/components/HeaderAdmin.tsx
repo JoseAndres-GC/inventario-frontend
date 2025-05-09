@@ -29,10 +29,10 @@ export default function HeaderAdmin() {
               Crear producto
             </Link>
             <Link href="/admin/productos" className="hover:underline">
-              Productos
+              Editar Producto
             </Link>
             <Link href="/admin/eliminar" className="hover:underline">
-              Eliminar productos
+              Eliminar producto
             </Link>
             <button
               onClick={handleLogout}

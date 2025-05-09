@@ -7,6 +7,16 @@ import Footer from "@/components/Footer";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 import { fetchConAuth } from "@/lib/fetchConAuth";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Legend,
+} from "recharts";
 
 export default function LogisticaPage() {
   const { token, usuario, loading } = useAuth();
@@ -68,6 +78,15 @@ export default function LogisticaPage() {
     XLSX.writeFile(libro, `historial-retiros-${fecha}.xlsx`);
   };
 
+  const datosGrafico = Object.values(
+    pedidos.reduce((acc: any, p: any) => {
+      const nombre = p.producto?.nombre || "Desconocido";
+      if (!acc[nombre]) acc[nombre] = { nombre, cantidad: 0 };
+      acc[nombre].cantidad += p.cantidad;
+      return acc;
+    }, {})
+  ).sort((a: any, b: any) => b.cantidad - a.cantidad);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
@@ -97,6 +116,25 @@ export default function LogisticaPage() {
             </svg>
             Descargar Excel
           </button>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
+            📊 Productos más retirados
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={datosGrafico}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="nombre" tick={{ fontSize: 12 }} />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="cantidad" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         <div className="overflow-x-auto bg-white rounded-lg shadow-md">
