@@ -2,10 +2,13 @@
 
 import { useAuth } from "@/components/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 
 export default function Header() {
   const { usuario, logout } = useAuth();
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -13,21 +16,40 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-black text-white px-4 sm:px-6 py-4 shadow">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+    <header className="bg-gray-800 text-white p-4 shadow-md z-50">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
         <h1 className="text-xl font-bold">Inventario</h1>
-        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-          <span className="text-sm text-center sm:text-left">
-            👤 {usuario?.nombre}
-          </span>
+        <button
+          className="sm:hidden"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+        <div className="hidden sm:flex items-center gap-4">
+          <span className="text-sm">👤 {usuario?.nombre}</span>
           <button
             onClick={handleLogout}
-            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 w-full sm:w-auto"
+            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-medium"
           >
             Cerrar sesión
           </button>
         </div>
       </div>
+      {menuOpen && (
+        <div className="sm:hidden mt-4 flex flex-col items-start gap-2">
+          <span className="text-sm">👤 {usuario?.nombre}</span>
+          <button
+            onClick={() => {
+              setMenuOpen(false);
+              handleLogout();
+            }}
+            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-medium w-full text-left"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      )}
     </header>
   );
 }
