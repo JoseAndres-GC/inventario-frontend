@@ -16,7 +16,12 @@ import {
   ResponsiveContainer,
   CartesianGrid,
   Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export default function LogisticaPage() {
   const { token, usuario, loading } = useAuth();
@@ -87,6 +92,40 @@ export default function LogisticaPage() {
     }, {})
   ).sort((a: any, b: any) => b.cantidad - a.cantidad);
 
+  const top5Productos = datosGrafico.slice(0, 5);
+
+  const datosPorDia = Object.values(
+    pedidos.reduce((acc: any, p: any) => {
+      const fecha = p.createdAt
+        ? format(new Date(p.createdAt), "dd/MM/yyyy", { locale: es })
+        : "Sin fecha";
+      if (!acc[fecha]) acc[fecha] = { fecha, cantidad: 0 };
+      acc[fecha].cantidad += p.cantidad;
+      return acc;
+    }, {})
+  ).sort(
+    (a: any, b: any) =>
+      new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
+  );
+
+  const datosPorMedida = Object.values(
+    pedidos.reduce((acc: any, p: any) => {
+      const medida = p.producto?.medida || "—";
+      if (!acc[medida]) acc[medida] = { medida, cantidad: 0 };
+      acc[medida].cantidad += p.cantidad;
+      return acc;
+    }, {})
+  );
+
+  const COLORS = [
+    "#3B82F6",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#8B5CF6",
+    "#EC4899",
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
@@ -118,25 +157,70 @@ export default function LogisticaPage() {
           </button>
         </div>
 
+        {/* 🏆 Top 5 productos retirados */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
-            📊 Productos más retirados
+            🏆 Top 5 productos retirados
           </h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={datosGrafico}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
+            <BarChart data={top5Productos}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="nombre" tick={{ fontSize: 12 }} />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="cantidad" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="cantidad" fill="#6366F1" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
+        {/* 📅 Retiros por día */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
+            📅 Retiros por día
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={datosPorDia}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="fecha" tick={{ fontSize: 10 }} />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="cantidad" fill="#10B981" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* ⚖️ Distribución por unidad de medida */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
+            ⚖️ Distribución por unidad de medida
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                dataKey="cantidad"
+                data={datosPorMedida}
+                nameKey="medida"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                label
+              >
+                {datosPorMedida.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* 📋 Tabla de historial */}
         <div className="overflow-x-auto bg-white rounded-lg shadow-md">
           <table className="min-w-full text-sm sm:text-base">
             <thead className="bg-gray-300 text-gray-800 uppercase">
